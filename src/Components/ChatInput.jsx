@@ -34,6 +34,7 @@ export default function ChatInput() {
             clientId: state.clientId,
             receiver: receiverId,
             message,
+            timeStamp: new Date().getTime(),
           },
         })
       );
