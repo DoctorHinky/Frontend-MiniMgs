@@ -4,7 +4,7 @@ import PropTypes from "prop-types";
 
 const WebSocketContext = createContext();
 // only for dev purposes
-// const webSocket_URL = "ws://localhost:5001";
+//const webSocket_URL = "ws://localhost:5001";
 const webSocket_URL = "wss://minimessenger-kgri.onrender.com";
 export let ws = null;
 export function WebSocketProvider({ children }) {
