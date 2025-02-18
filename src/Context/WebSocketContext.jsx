@@ -1,20 +1,20 @@
 import { createContext, useContext, useEffect, useReducer } from "react";
 import { WebsocketReducer, initState } from "./WebSocketReducer";
-import { error, log, warn } from "console";
 import PropTypes from "prop-types";
 
 const WebSocketContext = createContext();
 // only for dev purposes
-const webSocket_URL = "ws://localhost:8080/ws";
-
+// const webSocket_URL = "ws://localhost:5001";
+const webSocket_URL = "wss://minimessenger-kgri.onrender.com";
+export let ws = null;
 export function WebSocketProvider({ children }) {
   const [state, dispatch] = useReducer(WebsocketReducer, initState);
 
   useEffect(() => {
-    const ws = new WebSocket(webSocket_URL);
+    ws = new WebSocket(webSocket_URL);
 
     ws.addEventListener("open", () => {
-      log("Connected to server");
+      console.log("Connected to server");
       dispatch({ type: "SET_WS", payload: ws });
     });
 
@@ -22,8 +22,9 @@ export function WebSocketProvider({ children }) {
       let data;
       try {
         data = JSON.parse(e.data);
+        console.log("Data im Frontend: ", data);
       } catch (err) {
-        error("Failed to parse incoming message", err);
+        console.error("Failed to parse incoming message", err);
       }
 
       switch (data.type) {
@@ -52,13 +53,13 @@ export function WebSocketProvider({ children }) {
           break;
 
         default:
-          warn("unbekannter Nachrichten Type:", data.type);
+          console.warn("unbekannter Nachrichten Type:", data.type);
           break;
       }
     });
 
     ws.addEventListener("close", () => {
-      log("Disconnected from server");
+      console.log("Disconnected from server");
       dispatch({ type: "SET_WS", payload: null });
     });
 

@@ -3,69 +3,67 @@ import { useWebSocket } from "../Context/WebSocketContext";
 
 export default function ChatInput() {
   const [message, setMessage] = useState("");
-  const [isPrivate, setIsPivate] = useState(false);
   const { state } = useWebSocket();
-  const [receiverId, setReceiverId] = useState("");
 
   const sendMessage = () => {
-    if (state.ws && message.trim() !== "" && isPrivate === false) {
-      state.ws.send(
-        JSON.stringify({
-          type: "NORMAL_MESSAGE",
-          payload: {
-            clientId: state.clientId,
-            message,
-          },
-        })
-      );
-      setMessage("");
+    if (!state.ws || state.ws.readyState !== WebSocket.OPEN) {
+      console.error("WebSocket connection is not open!");
+      return; // Verhindert das Senden, wenn die Verbindung nicht offen ist
     }
 
-    if (
-      state.ws &&
-      message.trim() !== "" &&
-      isPrivate === true &&
-      receiverId !== ""
-    ) {
-      state.ws.send(
-        JSON.stringify({
-          type: "PRIVATE_MESSAGE",
-          payload: {
-            clientId: state.clientId,
-            receiver: receiverId,
-            message,
-            timeStamp: new Date().getTime(),
-          },
-        })
-      );
-      setMessage("");
+    console.log("My Id is: ", state.clientId);
+
+    // Hier überprüfen wir den Inhalt der Nachricht
+    const messageData = {
+      type: "NORMAL_MESSAGE",
+      payload: {
+        clientId: state.clientId,
+        message: message,
+      },
+    };
+
+    console.log("Prepared message:", messageData); // Logge die Nachricht vor dem Senden
+
+    // Sende die Nachricht nur, wenn sie korrekt ist
+    if (message.trim() !== "") {
+      state.ws.send(JSON.stringify(messageData));
+      console.log("Message sent:", messageData); // Erfolgreiches Senden
+      setMessage(""); // Zurücksetzen der Nachricht
+    } else {
+      console.log("Message is empty. Not sending.");
     }
   };
+  function LocktheLobby() {
+    const messageData = {
+      type: "LOCK_LOBBY",
+      payload: {
+        clientId: state.clientId,
+        message: "Lobby is locked",
+      },
+    };
+    state.ws.send(JSON.stringify(messageData));
+    console.log("Lobby locking:", messageData); // Erfolgreiches Senden
+  }
 
   return (
-    <div>
-      <input
-        type="text"
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            sendMessage();
-          }
-        }}
-      />
-      <button onClick={sendMessage}>Send</button>
-      <input
-        type="checkbox"
-        checked={isPrivate}
-        onChange={(e) => setIsPivate(e.target.checked)}
-      />
-      <input
-        type="text"
-        value={receiverId}
-        onChange={(e) => setReceiverId(e.target.value)}
-        placeholder="Receiver ID"
-      />
+    <div className="inputContainer">
+      {state.clientId === "Host" && (
+        <button onClick={() => LocktheLobby()}>Lock</button>
+      )}
+      <div className="messageInp">
+        <input
+          type="text"
+          className="messageField"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              sendMessage();
+            }
+          }}
+        />
+        <button onClick={sendMessage}>Send</button>
+      </div>
     </div>
   );
 }
